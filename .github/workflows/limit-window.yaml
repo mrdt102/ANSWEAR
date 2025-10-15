@@ -1,0 +1,71 @@
+name: Challenge time window
+
+on:
+  push:
+    branches: [ "**" ]
+
+permissions:
+  contents: write
+
+env:
+  DEADLINE_HOURS: 2
+
+jobs:
+  start-timer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure .challenge/started_at exists (first push starts or resets the clock)
+        run: |
+          set -euo pipefail
+          mkdir -p .challenge
+
+          git config user.name "challenge-bot"
+          git config user.email "challenge-bot@users.noreply.github.com"
+
+          # Sprawdź kto był ostatnim autorem pliku (jeśli istnieje)
+          LAST_AUTHOR="$(git log -1 --pretty='%an <%ae>' -- .challenge/started_at 2>/dev/null || true)"
+
+          # Jeśli plik nie istnieje LUB pochodzi z templatki → zresetuj/zacznij licznik
+          if [ ! -f .challenge/started_at ] || ! echo "$LAST_AUTHOR" | grep -q 'challenge-bot <challenge-bot@users.noreply.github.com>'; then
+            date -u +%s > .challenge/started_at
+            git add -f .challenge/started_at  # -f omija .gitignore
+            if [ -z "$LAST_AUTHOR" ]; then
+              git commit -m "Start challenge timer"
+            else
+              git commit -m "Reset challenge timer (template carryover detected: $LAST_AUTHOR)"
+            fi
+            git push
+          else
+            echo "Timer already started przez challenge-bot — bez zmian."
+          fi
+
+  enforce-deadline:
+    needs: start-timer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if deadline exceeded
+        run: |
+          set -euo pipefail
+
+          if [ ! -f .challenge/started_at ]; then
+            echo "No start marker found; skipping deadline check."
+            exit 0
+          fi
+
+          START=$(cat .challenge/started_at)
+          NOW=$(date -u +%s)
+          ELAPSED=$(( NOW - START ))
+          LIMIT=$(( ${DEADLINE_HOURS} * 3600 ))
+
+          echo "Elapsed: $((ELAPSED/3600))h (limit: ${DEADLINE_HOURS}h)"
+
+          if [ "${ELAPSED}" -gt "${LIMIT}" ]; then
+            echo "::error::Time window exceeded (${ELAPSED}s > ${LIMIT}s). Further pushes will fail."
+            exit 1
+          fi
