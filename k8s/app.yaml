@@ -26,21 +26,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: node:20-alpine
-          command: ["sh", "-lc"]
-          args:
-            - |
-              mkdir -p /app && cd /app
-              printf '%s' '{"name":"tmp","type":"module","dependencies":{"express":"^4.19.2","mysql2":"^3.11.3"}}' > package.json
-              npm i --quiet
-              cat > server.js <<'EOF'
-              import express from 'express';
-              const app = express();
-              app.get('/health', (req,res)=>res.send('OK'));
-              app.get('/', (req,res)=>res.send('Welcome to DevOps Challenge (K8s)!'));
-              app.listen(3000, ()=>console.log('App on 3000'));
-              EOF
-              node server.js
+          image: mrdt102/devops-app:latest
           ports:
             - containerPort: 3000
           env:
