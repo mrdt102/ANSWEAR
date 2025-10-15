@@ -19,15 +19,15 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: app }
+    matchLabels: {app: app}
   template:
     metadata:
-      labels: { app: app }
+      labels: {app: app}
     spec:
       containers:
         - name: app
           image: node:20-alpine
-          command: ["sh","-lc"]
+          command: ["sh", "-lc"]
           args:
             - |
               mkdir -p /app && cd /app
@@ -44,9 +44,9 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - { name: PORT, value: "3000" }
-            - { name: DB_HOST, value: "mysql" }
-            - { name: DB_PORT, value: "3306" }
-            - { name: DB_USER, value: "root" }
-            - { name: DB_PASS, value: "root" }
-            - { name: DB_NAME, value: "devops_test" }
+            - {name: PORT, value: "3000"}
+            - {name: DB_HOST, value: "mysql"}
+            - {name: DB_PORT, value: "3306"}
+            - {name: DB_USER, value: "root"}
+            - {name: DB_PASS, value: "root"}
+            - {name: DB_NAME, value: "devops_test"}

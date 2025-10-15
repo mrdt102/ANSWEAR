@@ -1,3 +1,22 @@
+# Tworzy tabelę messages jeśli nie istnieje + wstawia dane testowe
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init
+  namespace: challenge
+data:
+  init.sql: |2
+    CREATE TABLE IF NOT EXISTS messages (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      content VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+
+    INSERT INTO messages (content) VALUES
+    ('Hello from seed!'),
+    ('Your mission: make this app work.');
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -19,20 +38,34 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: mysql }
+    matchLabels: {app: mysql}
   template:
     metadata:
-      labels: { app: mysql }
+      labels: {app: mysql}
     spec:
       containers:
         - name: mysql
           image: mysql:8.0
           env:
-            - { name: MYSQL_ROOT_PASSWORD, value: "root" }
-            - { name: MYSQL_DATABASE, value: "devops_test" }
+            - {name: MYSQL_ROOT_PASSWORD, value: "root"}
+            - {name: MYSQL_DATABASE, value: "devops_test"}
           ports:
             - containerPort: 3306
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+            - name: mysql-init-volume
+              mountPath: /docker-entrypoint-initdb.d # MySQL wykona .sql z tego folderu init.sql
           readinessProbe:
-            exec: { command: ["sh","-lc","mysqladmin ping -h 127.0.0.1 --silent"] }
+            exec: {command: ["sh", "-lc", "mysqladmin ping -h 127.0.0.1 --silent"]}
             initialDelaySeconds: 10
             periodSeconds: 5
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+        - name: mysql-init-volume
+          configMap:
+            name: mysql-init
+
+            #dodanie PVC i konfig mapy dla init SQL i trwalego przechowywania DB.

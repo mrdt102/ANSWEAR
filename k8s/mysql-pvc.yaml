@@ -1,0 +1,13 @@
+# PersistentVolumeClaim - żądanie trwałego dysku dla danych MySQL
+# Kubernetes automatycznie utworzy PersistentVolume (dysk) spełniający te wymagania
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: challenge
+spec:
+  accessModes:
+    - ReadWriteOnce # Dysk może być podłączony do jednego Poda naraz (wystarczy dla MySQL)
+  resources:
+    requests:
+      storage: 1Gi # Rozmiar dysku: 1 gigabajt
