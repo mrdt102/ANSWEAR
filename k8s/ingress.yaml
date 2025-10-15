@@ -16,4 +16,4 @@ spec:
               service:
                 name: app
                 port:
-                  number: 80 # zly port niezgodny z app
+                  number: 80 # był zly port niezgodny z app
