@@ -29,7 +29,7 @@ spec:
           image: mysql:8.0
           env:
             - { name: MYSQL_ROOT_PASSWORD, value: "root" }
-            - { name: MYSQL_DATABASE, value: "devops_test" }
+            - { name: MYSQL_DATABASE, value: "devops-test" }
           ports:
             - containerPort: 3306
           readinessProbe:
